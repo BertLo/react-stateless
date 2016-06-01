@@ -17,9 +17,20 @@ const CountersList = Stateless.createClass({
       model.list = model.list.slice(0, model.list.length - 1);
       return model;
     },
-    counter: function (model, payload, message) {
+    updateMax: function (model) {
+      model.max = Math.max(model);
+      return model
+    },
+    updateCounter: function(model) {
       model.list[payload] = Counter.reduce(model.list[payload], message);
       return model;
+      
+    } 
+    counter: function (model, payload, message, dispatchers) {
+      return function() {
+        dispatchers.updateCounter()();
+        dispatchers.updateMax()();
+      }
     },
   },
   view: function (model, dispatchers) {
