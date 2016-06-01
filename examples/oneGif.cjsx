@@ -9,14 +9,14 @@ CatGif = Stateless.createClass
   initial: {loading: true}
 
   reducers:
-    componentWillMount: (model, paylload, message, dispatchers, directDispatchers) ->
-      directDispatchers.getGif
-    getGif: (model, payload, message, dispatchers, directDispatchers) -> ->
-      directDispatchers.loadingGif()
+    componentWillMount: (model, paylload, message, dispatchers) ->
+      dispatchers.getGif()
+    getGif: (model, payload, message, dispatchers) -> ->
+      dispatchers.loadingGif()()
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=cats"
         .then (response) -> response.json()
-        .then directDispatchers.gotGif
-        .catch directDispatchers.gifError
+        .then dispatchers.gotGif()
+        .catch dispatchers.gifError()
     loadingGif: (model) ->
       {loading: true, topic: model.topic}
     gotGif: (model, payload) ->

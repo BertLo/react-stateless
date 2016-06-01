@@ -7,23 +7,21 @@ RandomGif = Stateless.createClass
   initial: {loading: true, topic: ''}
 
   reducers:
-    #componentWillMount: (model, paylload, message, dispatchers, directDispatchers) ->
-      #directDispatchers.getGif
-    getGif: (model, payload, message, dispatchers, directDispatchers) -> ->
-      directDispatchers.loadingGif()
+    getGif: (model, payload, message, dispatchers) -> ->
+      dispatchers.loadingGif()()
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=#{model.topic}"
         .then (response) -> response.json()
-        .then directDispatchers.gotGif
-        .catch directDispatchers.gifError
+        .then dispatchers.gotGif()
+        .catch dispatchers.gifError()
     loadingGif: (model) ->
       {loading: true, topic: model.topic}
     gotGif: (model, payload) ->
       model.loading = false
       model.url = payload.data?.image_url
       return model
-    changeGifTopic: (model, payload, newValue, dispatchers, directDispatchers) -> ->
-      directDispatchers.changeTopic(newValue)
-      directDispatchers.getGif()
+    changeGifTopic: (model, payload, newValue, dispatchers) -> ->
+      dispatchers.changeTopic(newValue)()
+      dispatchers.getGif()()
     changeTopic: (model, payload) ->
       model.topic = payload
       return model
