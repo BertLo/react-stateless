@@ -1,6 +1,5 @@
 import React from 'react';
 import isFunction from 'lodash.isfunction';
-import defer from 'lodash.defer';
 import get from 'lodash.get';
 
 import root from './root.jsx';
@@ -144,10 +143,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
     model['@@STATLESS'].mounted = true;
     let topics = topicSenders(sender, reducers);
     let result = reducers[message.topic](model, message.payload, message.event, topics);
-    if (isFunction(result)) {
-      defer(result);
-      return model;
-    } else if (data) {
+    if (!isFunction(result)) {
       computeAsync(data, result, model, topics);
     }
     return result;
