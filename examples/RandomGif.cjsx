@@ -7,37 +7,37 @@ RandomGif = Stateless.createClass
   initial: {loading: true, topic: ''}
 
   reducers:
-    getGif: (model, payload, message, dispatchers) -> ->
-      dispatchers.loadingGif()()
+    getGif: (model, payload, message, topics) -> ->
+      topics.loadingGif.send()
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=#{model.topic}"
         .then (response) -> response.json()
-        .then dispatchers.gotGif()
-        .catch dispatchers.gifError()
+        .then topics.gotGif()
+        .catch topics.gifError()
     loadingGif: (model) ->
       {loading: true, topic: model.topic}
-    gotGif: (model, payload) ->
+    gotGif: (model, __, response) ->
       model.loading = false
-      model.url = payload.data?.image_url
+      model.url = response.data?.image_url
       return model
-    changeGifTopic: (model, payload, newValue, dispatchers) -> ->
-      dispatchers.changeTopic(newValue)()
-      dispatchers.getGif()()
+    changeGifTopic: (model, payload, newValue, topics) -> ->
+      topics.changeTopic.send(newValue)
+      topics.getGif.send()
     changeTopic: (model, payload) ->
       model.topic = payload
       return model
-    gifError: (model, payload) ->
+    gifError: (model, __, error) ->
       model.loading = false
-      model.error = payload
+      model.error = error
       return model
-  subscriber: (dispatchers) ->
-    topic: dispatchers.changeGifTopic()
+  subscriber: (topics) ->
+    topic: topics.changeGifTopic()
 
-  view: (model, dispatchers) ->
+  view: (model, topics) ->
     <div>
       {'Loading' if model.loading}
       {JSON.stringify(model.error) if model.error}
       {<img src={model.url} /> if model.url}
-      {<button onClick={dispatchers.getGif()}>Give me new</button> unless model.loading}
+      {<button onClick={topics.getGif()}>Give me new</button> unless model.loading}
     </div>
 
 module.exports = connect((state) -> {topic: state.topic})(RandomGif)

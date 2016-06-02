@@ -6,8 +6,9 @@ function root(options = {}) {
       constructor(props) {
         super(props);
         if (!options.getModel) {
+          this.model = Component.initial;
           this.state = {
-            model: Component.initial,
+            model: this.model,
           };
         }
       }
@@ -16,12 +17,13 @@ function root(options = {}) {
         if (options.reduce) {
           options.reduce(message);
         } else {
-          this.setState({model: Component.reduce(this.state.model, message, this.reduce.bind(this))});
+          this.model = Component.reduce(this.model, message, this.reduce.bind(this));
+          this.setState({model: this.model});
         }
       }
 
       render() {
-        let dispatchAs = this.reduce.bind(this);
+        let sender = this.reduce.bind(this);
         let model;
         if (options.getModel) {
           model = options.getModel(this.props, this.state, this.context);
@@ -29,7 +31,7 @@ function root(options = {}) {
           model = this.state.model;
         }
 
-        let props = Object.assign({}, this.props, {dispatchAs, model});
+        let props = Object.assign({}, this.props, {sender, model});
         return <Component {...props} />;
       }
     }

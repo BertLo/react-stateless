@@ -17,19 +17,19 @@ const CountersList = Stateless.createClass({
       model.list = model.list.slice(0, model.list.length - 1);
       return model;
     },
-    counter: function (model, payload, message, dispatchers) {
+    counter: function (model, payload, message) {
       model.list[payload] = Counter.reduce(model.list[payload], message);
       return model;
     },
   },
-  view: function (model, dispatchers) {
+  view: function (model, topics) {
     return (
       <div>
         {_.map(model.list, (count, i) => {
-          return <Counter key={i} model={count} dispatchAs={dispatchers.counter(i)} />;
+          return <Counter key={i} model={count} sender={topics.counter(i)} />;
         })}
-        <button onClick={dispatchers.insert()}>Insert</button>
-        <button onClick={dispatchers.delete()}>Delete</button>
+        <button onClick={topics.insert()}>Insert</button>
+        <button onClick={topics.delete()}>Delete</button>
       </div>
     );
   },

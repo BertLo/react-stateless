@@ -13,12 +13,12 @@ const Counter = Stateless.createClass({
       return model;
     },
   },
-  view: function (model, dispatchers) {
+  view: function (model, topics) {
     return (
       <div>
-        <button onClick={dispatchers.increment()}>+</button>
+        <button onClick={topics.increment()}>+</button>
         <div>{model.value}</div>
-        <button onClick={dispatchers.decrement()}>-</button>
+        <button onClick={topics.decrement()}>-</button>
       </div>
     );
   },

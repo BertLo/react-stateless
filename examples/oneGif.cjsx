@@ -9,31 +9,31 @@ CatGif = Stateless.createClass
   initial: {loading: true}
 
   reducers:
-    componentWillMount: (model, paylload, message, dispatchers) ->
-      dispatchers.getGif()
-    getGif: (model, payload, message, dispatchers) -> ->
-      dispatchers.loadingGif()()
+    componentWillMount: (model, paylload, message, topics) ->
+      topics.getGif()
+    getGif: (model, payload, message, topics) -> ->
+      topics.loadingGif.send()
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=cats"
         .then (response) -> response.json()
-        .then dispatchers.gotGif()
-        .catch dispatchers.gifError()
+        .then topics.gotGif()
+        .catch topics.gifError()
     loadingGif: (model) ->
-      {loading: true, topic: model.topic}
-    gotGif: (model, payload) ->
+      {loading: true}
+    gotGif: (model, payload, response) ->
       model.loading = false
-      model.url = payload.data?.image_url
+      model.url = response.data?.image_url
       return model
-    gifError: (model, payload) ->
+    gifError: (model, payload, err) ->
       model.loading = false
-      model.error = payload
+      model.error = err
       return model
 
-  view: (model, dispatchers) ->
+  view: (model, topics) ->
     <div>
       {'Loading' if model.loading}
       {JSON.stringify(model.error) if model.error}
       {<img src={model.url} /> if model.url}
-      {<button onClick={dispatchers.getGif()}>Give me new</button> unless model.loading}
+      {<button onClick={topics.getGif()}>Give me new</button> unless model.loading}
     </div>
 
 Root = Stateless.root()(CatGif)

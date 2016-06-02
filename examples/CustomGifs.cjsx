@@ -11,28 +11,29 @@ resetTopic = (topic) -> {type: 'RESET_TOPIC'}
 CustomGifs = Stateless.createClass
   initial: {topic: '', list: GifList.initial}
   reducers:
-    gifList: (model, payload, message, dispatchers) ->
-      model.list = GifList.reduce(model.list, message, dispatchers.gifList())
+    gifList: (model, payload, message, topics) ->
+      model.list = GifList.reduce(model.list, message, topics.gifList())
       return model
     updateTopic: (model, payload, event) ->
       model.topic = event.target.value
       return model
-    setReduxDispatch: (model, payload, value) ->
-      model.rDispatch = value
+    setReduxDispatch: (model, __, value) ->
+      model.dispatch = value
+      console.log model
       return model
     publishTopic: (model) -> ->
-      model.rDispatch(switchTopic(model.topic))
+      model.dispatch(switchTopic(model.topic))
     publishReset: (model) -> ->
-      model.rDispatch(resetTopic())
+      model.dispatch(resetTopic())
     setTopic: (model, payload, newValue) ->
       model.topic = newValue
       return model
-  view: (model, dispatchers) ->
+  view: (model, topics) ->
     <div>
-      <input type="text" value={model.topic} onChange={dispatchers.updateTopic()} />
-      <button onClick={dispatchers.publishTopic()}>Update</button>
-      <button onClick={dispatchers.publishReset()}>Give back my cats!</button>
-      <GifList model={model.list} dispatchAs={dispatchers.gifList()} />
+      <input type="text" value={model.topic} onChange={topics.updateTopic()} />
+      <button onClick={topics.publishTopic()}>Update</button>
+      <button onClick={topics.publishReset()}>Give back my cats!</button>
+      <GifList model={model.list} sender={topics.gifList()} />
     </div>
   subscriber: (dispatchers) ->
     dispatch: dispatchers.setReduxDispatch()

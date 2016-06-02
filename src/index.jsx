@@ -3,20 +3,21 @@ import isFunction from 'lodash.isfunction';
 import defer from 'lodash.defer';
 import get from 'lodash.get';
 
-function dispatchers(dispatchAs, reducers, direct) {
+import root from './root.jsx';
+
+function topicSenders(sender, reducers) {
   let messages = {};
   for (let key in reducers) {
     if (reducers.hasOwnProperty(key)) {
-      if (direct) {
-        messages[key] = payload => dispatchAs({topic: key, payload});
-      } else {
-        messages[key] = payload => event => {
-          if (event && event.persist && isFunction(event.persist)) {
-            event.persist();
-          }
-          dispatchAs({topic: key, payload, event});
-        };
-      }
+      messages[key] = payload => event => {
+        if (event && event.persist && isFunction(event.persist)) {
+          event.persist();
+        }
+        sender({topic: key, payload, event});
+      };
+      messages[key].send = (payload, event) => {
+        sender({topic: key, payload, event});
+      };
     }
   }
   return messages;
@@ -34,8 +35,8 @@ const COMPONENT_EVENTS = {
   COMPONENT_WILL_UNMOUNT: 'componentWillUnmount',
 };
 
-function computeAsync(data, newModel, oldModel, dispatchers) {
-  let dataList = data(dispatchers);
+function computeAsync(data, newModel, oldModel, topics) {
+  let dataList = data(topics);
   for (let {dependencies, exec, message} of dataList) {
     if (typeof dependencies === 'string') {
       dependencies = [dependencies];
@@ -63,7 +64,7 @@ function createClass({view, reducers, initial, subscriber, data}) {
   class StatelessComponent extends React.Component {
     broadcast(newProps, oldProps) {
       if (subscriber) {
-        let subscribeList = subscriber(this.dispatchers);
+        let subscribeList = subscriber(this.topics);
         for (let path in subscribeList) {
           if (subscribeList.hasOwnProperty(path)) {
             let newValue = get(newProps, path);
@@ -77,26 +78,26 @@ function createClass({view, reducers, initial, subscriber, data}) {
 
     constructor(props) {
       super(props);
-      if (!this.props.dispatchAs) {
-        throw new Error('DispatchAs required');
+      if (!this.props.sender) {
+        throw new Error('Sender is required');
       }
-      this.dispatchAs = this.props.dispatchAs;
-      this.dispatchers = dispatchers(this.dispatchAs, reducers);
+      this.sender = this.props.sender;
+      this.topics = topicSenders(this.sender, reducers);
     }
 
     componentWillMount() {
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_MOUNT]) {
-        this.dispatchAs({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT});
       }
       if (data && !(this.props.model['@@STATELESS'] && this.props.model['@@STATELESS'])) {
-        computeAsync(data, this.props.model, null, this.dispatchers);
+        computeAsync(data, this.props.model, null, this.topics);
       }
       this.broadcast(this.props, {});
     }
 
     componentDidMount() {
       if (reducers[COMPONENT_EVENTS.COMPONENT_DID_MOUNT]) {
-        this.dispatchAs({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT});
       }
     }
 
@@ -106,32 +107,32 @@ function createClass({view, reducers, initial, subscriber, data}) {
 
     componentWillUnmount() {
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT]) {
-        this.dispatchAs({topic: COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT});
       }
     }
 
     render() {
       let model = this.props.model;
-      return view(model, this.dispatchers);
+      return view(model, this.topics);
     }
   }
 
   StatelessComponent.view = view;
   StatelessComponent.reducers = reducers;
   StatelessComponent.initial = initial;
-  StatelessComponent.reduce = function (model, message, dispatchAs) {
+  StatelessComponent.reduce = function (model, message, sender) {
     model = Object.assign({}, model);
     if (!model['@@STATLESS']) {
       model['@@STATLESS'] = {};
     }
     model['@@STATLESS'].mounted = true;
-    let disps = dispatchers(dispatchAs, reducers);
-    let result = reducers[message.topic](model, message.payload, message.event, disps);
+    let topics = topicSenders(sender, reducers);
+    let result = reducers[message.topic](model, message.payload, message.event, topics);
     if (isFunction(result)) {
       defer(result);
       return model;
     } else if (data) {
-      computeAsync(data, result, model, disps);
+      computeAsync(data, result, model, topics);
     }
     return result;
   };

@@ -16,11 +16,11 @@ const TwoCounters = Stateless.createClass({
       return model;
     },
   },
-  view: function (model, dispatchers) {
+  view: function (model, topics) {
     return (
       <div>
-        <Counter model={model.top} dispatchAs={dispatchers.top()} />
-        <Counter model={model.bottom} dispatchAs={dispatchers.bottom()} />
+        <Counter model={model.top} sender={topics.top()} />
+        <Counter model={model.bottom} sender={topics.bottom()} />
       </div>
     );
   },
