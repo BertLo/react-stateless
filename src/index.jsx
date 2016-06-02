@@ -85,7 +85,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
 
     constructor(props) {
       super(props);
-      if (!this.props.sender) {
+      if (!this.props.sender && Object.keys(reducers).length > 0) {
         throw new Error('Sender is required');
       }
       this.sender = this.props.sender;
