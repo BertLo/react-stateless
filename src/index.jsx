@@ -64,6 +64,10 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
   if (!superClass) {
     superClass = React.Component;
   }
+  if (!reducers) {
+    reducers = {};
+  }
+
   class StatelessComponent extends superClass {
     broadcast(newProps, oldProps) {
       if (subscriber) {
