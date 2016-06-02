@@ -1,4 +1,5 @@
 import React from 'react';
+import isFunction from 'lodash.isfunction';
 
 function root(options = {}) {
   return function (Component) {
@@ -17,6 +18,10 @@ function root(options = {}) {
         if (options.reduce) {
           options.reduce(message);
         } else {
+          let result = Component.reduce(this.model, message, this.reduce.bind(this));
+          if (isFunction(result)) {
+            return result();
+          }
           this.model = Component.reduce(this.model, message, this.reduce.bind(this));
           this.setState({model: this.model});
         }
