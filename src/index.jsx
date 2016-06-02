@@ -60,8 +60,11 @@ function computeAsync(data, newModel, oldModel, topics) {
   }
 }
 
-function createClass({view, reducers, initial, subscriber, data}) {
-  class StatelessComponent extends React.Component {
+function createClass({view, reducers, initial, subscriber, data, superClass}) {
+  if (!superClass) {
+    superClass = React.Component;
+  }
+  class StatelessComponent extends superClass {
     broadcast(newProps, oldProps) {
       if (subscriber) {
         let subscribeList = subscriber(this.topics);
@@ -86,6 +89,9 @@ function createClass({view, reducers, initial, subscriber, data}) {
     }
 
     componentWillMount() {
+      if (super.componentWillMount) {
+        super.componentWillMount();
+      }
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_MOUNT]) {
         this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT});
       }
@@ -96,6 +102,9 @@ function createClass({view, reducers, initial, subscriber, data}) {
     }
 
     componentDidMount() {
+      if (super.componentDidMount) {
+        super.componentDidMount();
+      }
       if (reducers[COMPONENT_EVENTS.COMPONENT_DID_MOUNT]) {
         this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT});
       }
@@ -106,6 +115,9 @@ function createClass({view, reducers, initial, subscriber, data}) {
     }
 
     componentWillUnmount() {
+      if (super.componentWillUnmount) {
+        super.componentWillUnmount();
+      }
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT]) {
         this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT});
       }
