@@ -95,10 +95,8 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
       if (super.componentWillMount) {
         super.componentWillMount();
       }
-      this.broadcast(this.props, {});
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_MOUNT]) {
-        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT});
-      }
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT, payload: this.props});
       if (data && !(this.props.model['@@STATELESS'] && this.props.model['@@STATELESS'])) {
         computeAsync(data, this.props.model, null, this.topics);
       }
@@ -109,7 +107,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
         super.componentDidMount();
       }
       if (reducers[COMPONENT_EVENTS.COMPONENT_DID_MOUNT]) {
-        this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT, payload: this.props});
       }
     }
 
