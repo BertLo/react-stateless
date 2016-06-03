@@ -2,7 +2,7 @@ import React from 'react';
 import isFunction from 'lodash.isfunction';
 import get from 'lodash.get';
 
-import root from './root.jsx';
+import root from './root';
 
 function topicSenders(sender, reducers) {
   let messages = {};
