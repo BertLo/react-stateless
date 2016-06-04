@@ -11,15 +11,14 @@ resetTopic = (topic) -> {type: 'RESET_TOPIC'}
 CustomGifs = Stateless.createClass
   initial: {topic: '', list: GifList.initial}
   reducers:
+    componentWillMount: (model, props) ->
+      model.dispatch = props.dispatch
+      return model
     gifList: (model, payload, message, topics) ->
       model.list = GifList.reduce(model.list, message, topics.gifList())
       return model
     updateTopic: (model, payload, event) ->
       model.topic = event.target.value
-      return model
-    setReduxDispatch: (model, __, value) ->
-      model.dispatch = value
-      console.log model
       return model
     publishTopic: (model) -> ->
       model.dispatch(switchTopic(model.topic))
@@ -36,7 +35,6 @@ CustomGifs = Stateless.createClass
       <GifList model={model.list} sender={topics.gifList()} />
     </div>
   subscriber: (dispatchers) ->
-    dispatch: dispatchers.setReduxDispatch()
     topic: dispatchers.setTopic()
 
 module.exports = connect((s) -> {topic: s.topic})(CustomGifs)
