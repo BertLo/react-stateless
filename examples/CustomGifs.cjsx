@@ -34,7 +34,7 @@ CustomGifs = Stateless.createClass
       <button onClick={topics.publishReset()}>Give back my cats!</button>
       <GifList model={model.list} sender={topics.gifList()} />
     </div>
-   subscriber: (dispatchers) ->
+  subscriber: (dispatchers) ->
     topic: dispatchers.setTopic()
 
 module.exports = connect((s) -> {topic: s.topic})(CustomGifs)
