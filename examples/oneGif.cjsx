@@ -9,7 +9,7 @@ CatGif = Stateless.createClass
   initial: {loading: true}
 
   reducers:
-    componentWillMount: (model, paylload, message, topics) ->
+    componentWillMount: (model, payload, message, topics) ->
       topics.getGif()
     getGif: (model, payload, message, topics) -> ->
       topics.loadingGif.send()

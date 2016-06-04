@@ -22,7 +22,7 @@ function root(options = {}) {
           if (isFunction(result)) {
             return result();
           }
-          this.model = Component.reduce(this.model, message, this.reduce.bind(this));
+          this.model = result;
           this.setState({model: this.model});
         }
       }

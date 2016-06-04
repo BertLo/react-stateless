@@ -20,6 +20,9 @@ module.exports = function (example) {
       path: path.join(__dirname, 'dist'),
       filename: example + '.js',
     },
+    resolve: {
+      extensions: ['', '.js', '.jsx'],
+    },
     module: {
       loaders: [{
         test: /(.\js|\.jsx)$/,
