@@ -4,23 +4,41 @@ import get from 'lodash.get';
 
 import root from './root';
 
+function isMessage(message) {
+  return message && message.__message;
+}
+
+function senderCreator(payload) {
+  let fn = event => {
+    if (event && event.persist && isFunction(event.persist)) {
+      event.persist();
+      payload = Object.assign({}, payload, {event});
+    } else if (isMessage(event)) {
+      payload = Object.assign({}, payload, {message: event});
+    }
+
+    return this.sender({topic: this.key, payload, __message: true});
+  }
+
+  fn.send = () => {
+    return this.sender({topic: this.key, payload, __message: true});
+  };
+
+  return fn;
+}
+
 function topicSenders(sender, reducers) {
   let messages = {};
   for (let key in reducers) {
     if (reducers.hasOwnProperty(key)) {
-      messages[key] = payload => event => {
-        if (event && event.persist && isFunction(event.persist)) {
-          event.persist();
-        }
-        sender({topic: key, payload, event});
-      };
-      messages[key].send = (payload, event) => {
-        sender({topic: key, payload, event});
-      };
+      messages[key] = senderCreator.bind({key, sender});
+      messages[key].send = messages[key]();
     }
   }
   return messages;
 }
+
+
 
 const ASYNC_STATUSES = {
   PENDING: 'PENDING',
@@ -75,7 +93,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
           if (subscribeList.hasOwnProperty(path)) {
             let newValue = get(newProps, path);
             if (newValue !== get(oldProps, path)) {
-              subscribeList[path](newValue);
+              subscribeList[path]({newValue}).send();
             }
           }
         }
@@ -96,7 +114,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
         super.componentWillMount();
       }
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_MOUNT]) {
-        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT, payload: this.props});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT, payload: {props: this.props}, __message: true});
       }
       //if (data && !(this.props.model['@@STATELESS'] && this.props.model['@@STATELESS'])) {
         //computeAsync(data, this.props.model, null, this.topics);
@@ -108,7 +126,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
         super.componentDidMount();
       }
       if (reducers[COMPONENT_EVENTS.COMPONENT_DID_MOUNT]) {
-        this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT, payload: this.props});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_DID_MOUNT, payload: {props: this.props}, __message: true});
       }
     }
 
@@ -121,7 +139,7 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
         super.componentWillUnmount();
       }
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT]) {
-        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT});
+        this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_UNMOUNT, __message: true});
       }
     }
 
@@ -135,16 +153,18 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
   StatelessComponent.reducers = reducers;
   StatelessComponent.initial = initial;
   StatelessComponent.reduce = function (model, message, sender) {
-    model = Object.assign({}, model);
+    model.i = model.i || 0
+    model = Object.assign({}, model, {i: model.i + 1});
     //if (!model['@@STATLESS']) {
       //model['@@STATLESS'] = {};
     //}
     //model['@@STATLESS'].mounted = true;
     let topics = topicSenders(sender, reducers);
-    let result = reducers[message.topic](model, message.payload, message.event, topics);
-    //if (!isFunction(result)) {
-      //computeAsync(data, result, model, topics);
-    //}
+    let result = reducers[message.topic](model, message.payload, topics);
+    if (isFunction(result)) {
+      setTimeout(result);
+      return model;
+    }
     return result;
   };
 

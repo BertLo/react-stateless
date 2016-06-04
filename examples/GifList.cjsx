@@ -14,14 +14,17 @@ GifList = Stateless.createClass
     delete: (model) ->
       model.list = model.list.slice(0, model.list.length - 1)
       return model
-    gif: (model, payload, message, topics) ->
+    gif: (model, payload, topics) ->
       model.list = model.list.slice()
-      model.list[payload] = RandomGif.reduce(model.list[payload], message, topics.gif(payload))
+      model.list[payload.index] = RandomGif.reduce(
+        model.list[payload.index],
+        payload.message,
+        topics.gif({index: payload.index}))
       return model
 
   view: (model, topics) ->
     <div>
-      {_.map model.list, (gif, i) -> <RandomGif key={i} model={gif} sender={topics.gif(i)} />}
+      {_.map model.list, (gif, i) -> <RandomGif key={i} model={gif} sender={topics.gif({index: i})} />}
       <button onClick={topics.insert()}>+</button>
       <button onClick={topics.delete()}>-</button>
     </div>

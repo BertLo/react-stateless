@@ -7,30 +7,31 @@ RandomGif = Stateless.createClass
   initial: {loading: true, topic: ''}
 
   reducers:
-    getGif: (model, payload, message, topics) -> ->
-      topics.loadingGif.send()
+    componentWillMount: (model, {props}, topics) -> ->
+      topics.changeTopic({topic: props.topic}).send()
+      topics.getGif().send()
+    getGif: (model, payload, topics) ->
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=#{model.topic}"
         .then (response) -> response.json()
-        .then topics.gotGif()
-        .catch topics.gifError()
-    loadingGif: (model) ->
-      {loading: true, topic: model.topic}
-    gotGif: (model, __, response) ->
+        .then (response) -> topics.gotGif({response}).send()
+        .catch (err) -> topics.gifError({error: err}).send()
+      return {loading: true, topic: model.topic}
+    gotGif: (model, {response}) ->
       model.loading = false
       model.url = response.data?.image_url
       return model
-    changeGifTopic: (model, payload, newValue, topics) -> ->
-      topics.changeTopic.send(newValue)
-      topics.getGif.send()
-    changeTopic: (model, payload) ->
-      model.topic = payload
+    changeGifTopic: (model, {newValue}, topics) -> ->
+      topics.changeTopic({topic: newValue}).send()
+      topics.getGif().send()
+    changeTopic: (model, {topic}) ->
+      model.topic = topic
       return model
-    gifError: (model, __, error) ->
+    gifError: (model, {error}) ->
       model.loading = false
       model.error = error
       return model
   subscriber: (topics) ->
-    topic: topics.changeGifTopic()
+    topic: topics.changeGifTopic
 
   view: (model, topics) ->
     <div>

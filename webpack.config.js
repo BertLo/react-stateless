@@ -8,6 +8,7 @@ const examples = {
   'oneCounter': 'oneCounter.jsx',
   'twoCounters': 'twoCounters.jsx',
   'counterList': 'counterList.jsx',
+  'inputList': 'inputList.jsx',
   'reduxRoot': 'reduxRoot.cjsx',
 };
 

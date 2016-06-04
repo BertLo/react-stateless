@@ -17,8 +17,8 @@ const CountersList = Stateless.createClass({
       model.list = model.list.slice(0, model.list.length - 1);
       return model;
     },
-    counter: function (model, payload, message) {
-      model.list[payload] = Counter.reduce(model.list[payload], message);
+    counter: function (model, payload) {
+      model.list[payload.index] = Counter.reduce(model.list[payload.index], payload.message);
       return model;
     },
   },
@@ -26,7 +26,7 @@ const CountersList = Stateless.createClass({
     return (
       <div>
         {_.map(model.list, (count, i) => {
-          return <Counter key={i} model={count} sender={topics.counter(i)} />;
+          return <Counter key={i} model={count} sender={topics.counter({index: i})} />;
         })}
         <button onClick={topics.insert()}>Insert</button>
         <button onClick={topics.delete()}>Delete</button>

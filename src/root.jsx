@@ -18,12 +18,9 @@ function root(options = {}) {
         if (options.reduce) {
           options.reduce(message);
         } else {
-          let result = Component.reduce(this.model, message, this.reduce.bind(this));
-          if (isFunction(result)) {
-            return result();
-          }
-          this.model = result;
-          this.setState({model: this.model});
+          this.model = Component.reduce(this.model, message, this.reduce.bind(this));
+          this.state.model = this.model;
+          this.forceUpdate();
         }
       }
 

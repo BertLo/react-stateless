@@ -9,23 +9,21 @@ CatGif = Stateless.createClass
   initial: {loading: true}
 
   reducers:
-    componentWillMount: (model, payload, message, topics) ->
-      topics.getGif()
-    getGif: (model, payload, message, topics) -> ->
-      topics.loadingGif.send()
+    componentWillMount: (model, payload, topics) ->
+      topics.getGif.send()
+    getGif: (model, payload, topics) ->
       fetch "http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=cats"
         .then (response) -> response.json()
-        .then topics.gotGif()
-        .catch topics.gifError()
-    loadingGif: (model) ->
-      {loading: true}
-    gotGif: (model, payload, response) ->
+        .then (response) -> topics.gotGif({response}).send()
+        .catch (err) -> topics.gifError({error: err}).send()
+      return {loading: true}
+    gotGif: (model, {response}) ->
       model.loading = false
       model.url = response.data?.image_url
       return model
-    gifError: (model, payload, err) ->
+    gifError: (model, {error}) ->
       model.loading = false
-      model.error = err
+      model.error = error
       return model
 
   view: (model, topics) ->
@@ -38,14 +36,10 @@ CatGif = Stateless.createClass
 
 Root = Stateless.root()(CatGif)
 
-store = createStore((n = {}) -> n)
-
 body = document.getElementsByTagName('body')[0]
 div = document.createElement('div')
 body.appendChild(div)
 ReactDOM.render(
-  <Provider store={store}>
-    <Root />
-  </Provider>
+  <Root />
   , div
 )
