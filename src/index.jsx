@@ -18,7 +18,7 @@ function senderCreator(payload) {
     }
 
     return this.sender({topic: this.key, payload, __message: true});
-  }
+  };
 
   fn.send = () => {
     return this.sender({topic: this.key, payload, __message: true});
@@ -38,46 +38,13 @@ function topicSenders(sender, reducers) {
   return messages;
 }
 
-
-
-const ASYNC_STATUSES = {
-  PENDING: 'PENDING',
-  REJECTED: 'REJECTED',
-  FULFILLED: 'FULFILLED',
-};
-
 const COMPONENT_EVENTS = {
   COMPONENT_WILL_MOUNT: 'componentWillMount',
   COMPONENT_DID_MOUNT: 'componentDidMount',
   COMPONENT_WILL_UNMOUNT: 'componentWillUnmount',
 };
 
-//function computeAsync(data, newModel, oldModel, topics) {
-  //let dataList = data(topics);
-  //for (let {dependencies, exec, message} of dataList) {
-    //if (typeof dependencies === 'string') {
-      //dependencies = [dependencies];
-    //}
-
-    //for (let dependency of dependencies) {
-      //if (!oldModel || get(oldModel, dependency) !== get(newModel, dependency)) {
-        //let toFulfill = exec(newModel);
-        //if (toFulfill) {
-          //message(ASYNC_STATUSES.PENDING)();
-          //toFulfill(function (err, result) {
-            //if (err) {
-              //return message(ASYNC_STATUSES.REJECTED)(err);
-            //}
-            //message(ASYNC_STATUSES.FULFILLED)(result);
-          //});
-        //}
-        //break;
-      //}
-    //}
-  //}
-//}
-
-function createClass({view, reducers, initial, subscriber, data, superClass}) {
+function createClass({view, reducers, initial, subscriber, superClass}) {
   if (!superClass) {
     superClass = React.Component;
   }
@@ -116,9 +83,6 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
       if (reducers[COMPONENT_EVENTS.COMPONENT_WILL_MOUNT]) {
         this.sender({topic: COMPONENT_EVENTS.COMPONENT_WILL_MOUNT, payload: {props: this.props}, __message: true});
       }
-      //if (data && !(this.props.model['@@STATELESS'] && this.props.model['@@STATELESS'])) {
-        //computeAsync(data, this.props.model, null, this.topics);
-      //}
     }
 
     componentDidMount() {
@@ -153,12 +117,6 @@ function createClass({view, reducers, initial, subscriber, data, superClass}) {
   StatelessComponent.reducers = reducers;
   StatelessComponent.initial = initial;
   StatelessComponent.reduce = function (model, message, sender) {
-    model.i = model.i || 0
-    model = Object.assign({}, model, {i: model.i + 1});
-    //if (!model['@@STATLESS']) {
-      //model['@@STATLESS'] = {};
-    //}
-    //model['@@STATLESS'].mounted = true;
     let topics = topicSenders(sender, reducers);
     let result = reducers[message.topic](model, message.payload, topics);
     if (isFunction(result)) {
