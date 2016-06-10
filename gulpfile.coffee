@@ -6,31 +6,33 @@ babel = require 'babel-core'
 del = require 'del'
 gulp = require 'gulp'
 gutil = require 'gulp-util'
+uglify = require 'gulp-uglify'
+rename = require 'gulp-rename'
 webpack = require 'webpack'
-mkdirp = require 'mkdirp'
 
 wpConfig = require('./webpack.config.js')
 
 gulp.task 'clean', ->
   del "#{__dirname}/dist"
+  del "#{__dirname}/build"
 
 gulp.task 'build', (cb) ->
-  mkdirp 'build', (err) ->
-    return cb(err) if err
-
-    async.parallel
-      index: (pCb) ->
-        babel.transformFile "#{__dirname}/src/index.jsx", {presets: ['react', 'es2015']}, (err, result) ->
-          fs.writeFile 'build/index.js', result.code, pCb
-      root: (pCb) ->
-        babel.transformFile "#{__dirname}/src/root.jsx", {presets: ['react', 'es2015']}, (err, result) ->
-          fs.writeFile 'build/root.js', result.code, pCb
-    , cb
+  webpackConfig = wpConfig
+  webpack webpackConfig, (err, stats) ->
+    throw new gutil.PluginError("Webpack", err) if err
+    errors = stats.toJson().errors
+    throw errors if errors.length > 0
+    gutil.log "Webpack", stats.toString({colors: true})
+    gulp.src("#{__dirname}/build/index.js")
+      .pipe(uglify())
+      .pipe(rename {suffix: '.min'})
+      .pipe(gulp.dest("#{__dirname}/build"))
+      .on('end', cb)
 
 gulp.task 'examples', (cb) ->
   examples = Object.keys(wpConfig.examples)
   async.each examples, (example, eCb) ->
-    webpackConfig = wpConfig(example)
+    webpackConfig = wpConfig.buildExamples(example)
     webpack webpackConfig, (err, stats) ->
       throw new gutil.PluginError("Webpack", err) if err
       errors = stats.toJson().errors

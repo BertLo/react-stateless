@@ -30,6 +30,8 @@
     "webpack": "^1.13.1"
   },
   "dependencies": {
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.5.3",
     "lodash.get": "^4.3.0",
     "lodash.isfunction": "^3.0.8"
   }
