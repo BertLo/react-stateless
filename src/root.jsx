@@ -1,5 +1,4 @@
 import React from 'react';
-import isFunction from 'lodash.isfunction';
 
 function root(options = {}) {
   return function (Component) {
@@ -8,9 +7,6 @@ function root(options = {}) {
         super(props);
         if (!options.getModel) {
           this.model = Component.initial;
-          this.state = {
-            model: this.model,
-          };
         }
       }
 
@@ -19,7 +15,6 @@ function root(options = {}) {
           options.reduce(message);
         } else {
           this.model = Component.reduce(this.model, message, this.reduce.bind(this));
-          this.state.model = this.model;
           this.forceUpdate();
         }
       }
@@ -30,7 +25,7 @@ function root(options = {}) {
         if (options.getModel) {
           model = options.getModel(this.props, this.state, this.context);
         } else {
-          model = this.state.model;
+          model = this.model;
         }
 
         let props = Object.assign({}, this.props, {sender, model});
